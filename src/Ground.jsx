@@ -6,11 +6,13 @@ import { BufferAttribute } from "three";
 import { TextureLoader } from "three/src/loaders/TextureLoader";
 
 export function Ground() {
-  const [ref] = usePlane(
-    () => ({ 
-      type: 'Static', 
-      rotation: [-Math.PI / 2, 0, 0] }
-    ), 
+  // ref is not used for logic here besides physics which is handled by usage of usePlane
+  usePlane(
+    () => ({
+      type: 'Static',
+      rotation: [-Math.PI / 2, 0, 0]
+    }
+    ),
     useRef(null)
   );
 
@@ -46,7 +48,7 @@ export function Ground() {
 
     var uvs2 = meshRef2.current.geometry.attributes.uv.array;
     meshRef2.current.geometry.setAttribute("uv2", new BufferAttribute(uvs2, 2));
-  }, [meshRef.current]);
+  }, []);
 
   return (
     <>

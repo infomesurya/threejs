@@ -1,0 +1,20 @@
+// TrafficCone component: simple orange cone obstacle
+import { Mesh, ConeGeometry, MeshStandardMaterial } from "three";
+import { useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+
+export function TrafficCone({ position = [0, 0, 0] }) {
+    const ref = useRef();
+    // optional rotation animation
+    useFrame(() => {
+        if (ref.current) {
+            ref.current.rotation.y += 0.01;
+        }
+    });
+    return (
+        <mesh ref={ref} position={position} castShadow>
+            <coneGeometry args={[0.2, 0.5, 8]} />
+            <meshStandardMaterial color="#ff6600" />
+        </mesh>
+    );
+}
