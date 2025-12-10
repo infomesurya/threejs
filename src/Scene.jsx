@@ -13,7 +13,6 @@ import { BoostPad } from "./BoostPad";
 
 import { FinishLine } from "./FinishLine";
 import { TrafficCone } from "./TrafficCone";
-import { DriftingScore } from "./DriftingScore";
 
 export function Scene() {
   const [thirdPerson, setThirdPerson] = useState(false);

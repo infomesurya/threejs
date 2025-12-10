@@ -19,4 +19,6 @@ export function Ramp() {
     }),
     useRef(null)
   );
+  // This component does not render any DOM/scene nodes itself
+  return null;
 }

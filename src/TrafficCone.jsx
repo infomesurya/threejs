@@ -1,5 +1,4 @@
 // TrafficCone component: simple orange cone obstacle
-import { Mesh, ConeGeometry, MeshStandardMaterial } from "three";
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useBox } from "@react-three/cannon";

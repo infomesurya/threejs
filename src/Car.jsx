@@ -8,7 +8,7 @@ import { useWheels } from "./useWheels";
 import { WheelDebug } from "./WheelDebug";
 import { Trail, Sparkles, SpotLight } from "@react-three/drei";
 import { DriftingScore } from "./DriftingScore";
-import { EngineAudio } from "./EngineAudio";
+
 
 export function Car({ thirdPerson, headlightsOn }) {
   // thanks to the_86_guy!
@@ -126,8 +126,8 @@ export function Car({ thirdPerson, headlightsOn }) {
         />
       )}
 
-      {/* Engine audio */}
-      <EngineAudio vehicleApi={vehicleApi} />
+      {/* Engine audio - disabled */}
+      {/* <EngineAudio vehicleApi={vehicleApi} /> */}
       <DriftingScore vehicleApi={vehicleApi} />
 
       {/* Underglow */}
