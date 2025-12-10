@@ -2,15 +2,15 @@
 import { Mesh, ConeGeometry, MeshStandardMaterial } from "three";
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
+import { useBox } from "@react-three/cannon";
 
 export function TrafficCone({ position = [0, 0, 0] }) {
-    const ref = useRef();
-    // optional rotation animation
-    useFrame(() => {
-        if (ref.current) {
-            ref.current.rotation.y += 0.01;
-        }
-    });
+    const [ref] = useBox(() => ({
+        mass: 1,
+        args: [0.4, 0.5, 0.4], // approximate box collider for cone
+        position,
+    }));
+    // optional rotation animation removed as physics handles movement
     return (
         <mesh ref={ref} position={position} castShadow>
             <coneGeometry args={[0.2, 0.5, 8]} />
