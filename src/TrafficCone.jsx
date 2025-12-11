@@ -1,6 +1,4 @@
 // TrafficCone component: simple orange cone obstacle
-import { useRef } from "react";
-import { useFrame } from "@react-three/fiber";
 import { useBox } from "@react-three/cannon";
 
 export function TrafficCone({ position = [0, 0, 0] }) {

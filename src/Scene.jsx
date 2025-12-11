@@ -10,6 +10,7 @@ import { Ground } from "./Ground";
 import { Track } from "./Track";
 import { HUD } from "./HUD";
 import { BoostPad } from "./BoostPad";
+import ProceduralWorld from "./world/ProceduralWorld";
 
 import { FinishLine } from "./FinishLine";
 import { TrafficCone } from "./TrafficCone";
@@ -18,6 +19,7 @@ export function Scene() {
   const [thirdPerson, setThirdPerson] = useState(false);
   const [cameraPosition, setCameraPosition] = useState([-6, 3.9, 6.21]);
   const [headlightsOn, setHeadlightsOn] = useState(false); // Move state inside component
+  const [proceduralEnabled, setProceduralEnabled] = useState(false);
 
   // Key listener for headlights toggle (L)
   useEffect(() => {
@@ -32,7 +34,7 @@ export function Scene() {
 
   useEffect(() => {
     function keydownHandler(e) {
-      if (e.key == "k") {
+      if (e.key === "k") {
         // random is necessary to trigger a state change
         if (thirdPerson) setCameraPosition([-6, 3.9, 6.21 + Math.random() * 0.01]);
         setThirdPerson(!thirdPerson);
@@ -42,6 +44,15 @@ export function Scene() {
     window.addEventListener("keydown", keydownHandler);
     return () => window.removeEventListener("keydown", keydownHandler);
   }, [thirdPerson]);
+
+  // Toggle procedural world with P key
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.key.toLowerCase() === "p") setProceduralEnabled((s) => !s);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   return (
     <Suspense fallback={null}>
@@ -57,6 +68,9 @@ export function Scene() {
       />
       {/* Orange fog for morning */}
       <fog attach="fog" args={['#ffae42', 10, 50]} />
+
+      {/* Procedural world (toggle with 'P') */}
+      {proceduralEnabled && <ProceduralWorld />}
 
       <Environment
         files={process.env.PUBLIC_URL + "/textures/envmap.hdr"}

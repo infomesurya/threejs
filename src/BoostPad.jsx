@@ -5,7 +5,7 @@ import { MeshStandardMaterial, Color } from "three";
 
 export function BoostPad({ position = [0, 0.01, 0], size = [2, 0.02, 2] }) {
     // Use onCollide in the collider options instead of attaching event listeners
-    const [ref, api] = useBox(() => ({
+    const [ref] = useBox(() => ({
         type: "Static",
         args: size,
         position,
