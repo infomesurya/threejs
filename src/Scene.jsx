@@ -1,4 +1,5 @@
 import {
+  Environment,
   OrbitControls,
   PerspectiveCamera,
   Sky,
@@ -12,7 +13,6 @@ import { BoostPad } from "./BoostPad";
 import ProceduralWorld from "./world/ProceduralWorld";
 import CameraController from "./systems/CameraController";
 import ParkingZone from "./systems/ParkingZone";
-import Coin from "./systems/Coin";
 
 import { FinishLine } from "./FinishLine";
 import { TrafficCone } from "./TrafficCone";

@@ -1,4 +1,3 @@
-import { useCompoundBody } from "@react-three/cannon";
 import { useRef } from "react";
 
 export const useWheels = (width, height, front, radius) => {
@@ -42,24 +41,6 @@ export const useWheels = (width, height, front, radius) => {
       isFrontWheel: false,
     },
   ];
-
-  const propsFunc = () => ({
-    collisionFilterGroup: 0,
-    mass: 1,
-    shapes: [
-      {
-        args: [wheelInfo.radius, wheelInfo.radius, 0.015, 16],
-        rotation: [0, 0, -Math.PI / 2],
-        type: "Cylinder",
-      },
-    ],
-    type: "Kinematic",
-  });
-
-  useCompoundBody(propsFunc, wheels[0]);
-  useCompoundBody(propsFunc, wheels[1]);
-  useCompoundBody(propsFunc, wheels[2]);
-  useCompoundBody(propsFunc, wheels[3]);
 
   return [wheels, wheelInfos];
 };

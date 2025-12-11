@@ -8,6 +8,8 @@ let gameState = {
   isOnTrack: true,
   offTrackDuration: 0,
   offTrackMessage: "",
+  resetPosition: null, // Timestamp when reset is requested
+  gameStatus: 'start', // 'start', 'playing', 'finished'
 };
 
 const listeners = new Set();
@@ -29,5 +31,9 @@ export function useGameState() {
   return state;
 }
 
-const gameStateExport = { useGameState, updateGameState };
+export function getGameState() {
+  return gameState;
+}
+
+const gameStateExport = { useGameState, updateGameState, getGameState };
 export default gameStateExport;

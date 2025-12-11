@@ -1,17 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useFrame } from "@react-three/fiber";
 
-export const useControls = (vehicleApi, chassisApi) => {
-  let [controls, setControls] = useState({ });
+export const useControls = (vehicleApi, chassisApi, isOnTrack = true) => {
+  let [controls, setControls] = useState({});
+  const controlsRef = useRef({});
 
   useEffect(() => {
     const keyDownPressHandler = (e) => {
-      setControls((controls) => ({ ...controls, [e.key.toLowerCase()]: true }));
+      const key = e.key.toLowerCase();
+      setControls((controls) => ({ ...controls, [key]: true }));
+      controlsRef.current[key] = true;
     }
 
     const keyUpPressHandler = (e) => {
-      setControls((controls) => ({ ...controls, [e.key.toLowerCase()]: false }));
+      const key = e.key.toLowerCase();
+      setControls((controls) => ({ ...controls, [key]: false }));
+      controlsRef.current[key] = false;
     }
-  
+
     window.addEventListener("keydown", keyDownPressHandler);
     window.addEventListener("keyup", keyUpPressHandler);
     return () => {
@@ -20,48 +26,74 @@ export const useControls = (vehicleApi, chassisApi) => {
     }
   }, []);
 
-  useEffect(() => {
-    if(!vehicleApi || !chassisApi) return;
+  useFrame(() => {
+    // Guard: ensure vehicleApi and chassisApi are fully initialized
+    if (!vehicleApi || !chassisApi) return;
 
-    if (controls.w) {
-      vehicleApi.applyEngineForce(150, 2);
-      vehicleApi.applyEngineForce(150, 3);
-    } else if (controls.s) {
-      vehicleApi.applyEngineForce(-150, 2);
-      vehicleApi.applyEngineForce(-150, 3);
+    // Additional safety check - vehicleApi methods might not be ready yet
+    try {
+      if (!vehicleApi.applyEngineForce || !vehicleApi.setSteeringValue || !vehicleApi.setBrake) {
+        return;
+      }
+    } catch (e) {
+      // vehicleApi not ready yet
+      return;
+    }
+
+    if (!isOnTrack) {
+      vehicleApi.setBrake(10, 2);
+      vehicleApi.setBrake(10, 3);
+      vehicleApi.applyEngineForce(0, 2);
+      vehicleApi.applyEngineForce(0, 3);
+      return;
+    }
+
+    vehicleApi.setBrake(0, 2);
+    vehicleApi.setBrake(0, 3);
+
+    const { w, s, a, d, arrowdown, arrowup, arrowleft, arrowright, r } = controlsRef.current;
+
+    if (w) {
+      vehicleApi.applyEngineForce(2000, 2);
+      vehicleApi.applyEngineForce(2000, 3);
+    } else if (s) {
+      vehicleApi.applyEngineForce(-2000, 2);
+      vehicleApi.applyEngineForce(-2000, 3);
     } else {
       vehicleApi.applyEngineForce(0, 2);
       vehicleApi.applyEngineForce(0, 3);
     }
 
-    if (controls.a) {
+    if (a) {
       vehicleApi.setSteeringValue(0.35, 2);
       vehicleApi.setSteeringValue(0.35, 3);
       vehicleApi.setSteeringValue(-0.1, 0);
       vehicleApi.setSteeringValue(-0.1, 1);
-    } else if (controls.d) {
+    } else if (d) {
       vehicleApi.setSteeringValue(-0.35, 2);
       vehicleApi.setSteeringValue(-0.35, 3);
       vehicleApi.setSteeringValue(0.1, 0);
       vehicleApi.setSteeringValue(0.1, 1);
     } else {
-      for(let i = 0; i < 4; i++) {
+      for (let i = 0; i < 4; i++) {
         vehicleApi.setSteeringValue(0, i);
       }
     }
 
-    if (controls.arrowdown)  chassisApi.applyLocalImpulse([0, -5, 0], [0, 0, +1]);
-    if (controls.arrowup)    chassisApi.applyLocalImpulse([0, -5, 0], [0, 0, -1]);
-    if (controls.arrowleft)  chassisApi.applyLocalImpulse([0, -5, 0], [-0.5, 0, 0]);
-    if (controls.arrowright) chassisApi.applyLocalImpulse([0, -5, 0], [+0.5, 0, 0]);
+    // Flip Controls - small continuous impulse/torque
+    // Applying local impulse at an offset to create rotation
+    if (arrowdown) chassisApi.applyLocalImpulse([0, -2.5, 0], [0, 0, +1]);
+    if (arrowup) chassisApi.applyLocalImpulse([0, -2.5, 0], [0, 0, -1]);
+    if (arrowleft) chassisApi.applyLocalImpulse([0, -2.5, 0], [-0.5, 0, 0]);
+    if (arrowright) chassisApi.applyLocalImpulse([0, -2.5, 0], [+0.5, 0, 0]);
 
-    if (controls.r) {
-      chassisApi.position.set(-1.5, 0.5, 3);
+    if (r) {
       chassisApi.velocity.set(0, 0, 0);
       chassisApi.angularVelocity.set(0, 0, 0);
       chassisApi.rotation.set(0, 0, 0);
+      chassisApi.position.set(-1.5, 0.5, 3);
     }
-  }, [controls, vehicleApi, chassisApi]);
+  });
 
   return controls;
 }

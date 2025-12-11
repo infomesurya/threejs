@@ -1,15 +1,15 @@
 import { useBox, useRaycastVehicle } from "@react-three/cannon";
 import { useFrame, useLoader } from "@react-three/fiber";
-import { useEffect, useRef } from "react";
-import { Quaternion, Vector3 } from "three";
+import { useEffect, useRef, useState } from "react";
+import { Vector3 } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { useControls } from "./useControls";
 import { useWheels } from "./useWheels";
 import { WheelDebug } from "./WheelDebug";
 import { Trail, Sparkles, SpotLight } from "@react-three/drei";
-import { DriftingScore } from "./DriftingScore";
 import useTrackDetection from "./systems/useTrackDetection";
-import { updateGameState } from "./systems/gameStateStore";
+import { updateGameState, useGameState } from "./systems/gameStateStore";
+
 
 
 export function Car({ thirdPerson, headlightsOn, carBodyRef }) {
@@ -28,6 +28,7 @@ export function Car({ thirdPerson, headlightsOn, carBodyRef }) {
 
   const chassisBodyArgs = [width, height, front * 2];
   const localRef = useRef(null);
+  const vehicleRef = useRef(null);
   const effectiveRef = carBodyRef || localRef;
 
   const [chassisBody, chassisApi] = useBox(
@@ -48,29 +49,60 @@ export function Car({ thirdPerson, headlightsOn, carBodyRef }) {
       wheelInfos,
       wheels,
     }),
-    useRef(null),
+    vehicleRef,
   );
 
-  const controls = useControls(vehicleApi, chassisApi);
+  // Track when vehicle is fully initialized
+  const [vehicleReady, setVehicleReady] = useState(false);
+
+  useEffect(() => {
+    // Check if vehicleApi is ready by testing if methods exist
+    if (vehicleApi && typeof vehicleApi.applyEngineForce === 'function') {
+      setVehicleReady(true);
+    }
+  }, [vehicleApi]);
 
   // Track detection
   const { isOnTrack, offTrackDuration, trackBounds } = useTrackDetection(chassisBody);
+  const { resetPosition, gameStatus } = useGameState();
 
-  // Auto-return car to track when off-road for too long
+  const canMove = isOnTrack && gameStatus === 'playing';
+  // Only pass vehicleApi to useControls when it's ready
+  const controls = useControls(
+    vehicleReady ? vehicleApi : null,
+    vehicleReady ? chassisApi : null,
+    canMove
+  );
+
+  useFrame(() => {
+    // Auto reset if off track for too long
+    if (!isOnTrack && offTrackDuration > 0.5 && chassisBody?.current) {
+      const trackCenterX = (trackBounds.minX + trackBounds.maxX) / 2;
+      const trackCenterZ = (trackBounds.minZ + trackBounds.maxZ) / 2;
+
+      chassisApi.position.set(trackCenterX, 1, trackCenterZ);
+      chassisApi.velocity.set(0, 0, 0);
+      chassisApi.angularVelocity.set(0, 0, 0);
+      // vehicleApi.reset(); // Method does not exist, physics reset is sufficient
+    }
+  });
+
+  // Handle reset from Game State (triggered by HUD button)
   useEffect(() => {
-    if (offTrackDuration > 3 && !isOnTrack && chassisBody?.current) {
+    if (resetPosition && chassisBody?.current) {
       // Reset car position to center of track
       const trackCenterX = (trackBounds.minX + trackBounds.maxX) / 2;
       const trackCenterZ = (trackBounds.minZ + trackBounds.maxZ) / 2;
-      
-      chassisBody.current.position.set(trackCenterX, 1, trackCenterZ);
-      chassisBody.current.velocity.set(0, 0, 0);
-      chassisBody.current.angularVelocity.set(0, 0, 0);
-      
+
+      chassisApi.position.set(trackCenterX, 1, trackCenterZ);
+      chassisApi.velocity.set(0, 0, 0);
+      chassisApi.angularVelocity.set(0, 0, 0);
+
       // Reset vehicle
-      vehicleApi.reset();
+      // vehicleApi.reset();
     }
-  }, [offTrackDuration, isOnTrack, trackBounds, vehicleApi, chassisBody]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resetPosition, trackBounds, vehicleApi, chassisBody, chassisApi]);
 
   // Publish game state changes
   useEffect(() => {
@@ -91,24 +123,13 @@ export function Car({ thirdPerson, headlightsOn, carBodyRef }) {
   // Camera spring logic (commented out unused ref warning, logic handled directly in useFrame for now)
   // const camPosRef = useRef(new Vector3());
 
+  // Camera logic moved to CameraController.jsx to prevent conflict
+  /* 
   useFrame((state) => {
     if (!thirdPerson) return;
-
-    // Compute target camera position
-    const position = new Vector3();
-    position.setFromMatrixPosition(chassisBody.current.matrixWorld);
-    const quaternion = new Quaternion();
-    quaternion.setFromRotationMatrix(chassisBody.current.matrixWorld);
-    let wDir = new Vector3(0, 0, 1);
-    wDir.applyQuaternion(quaternion);
-    wDir.normalize();
-
-    let cameraPosition = position.clone().add(wDir.clone().multiplyScalar(1).add(new Vector3(0, 0.3, 0)));
-
-    wDir.add(new Vector3(0, 0.2, 0));
-    state.camera.position.copy(cameraPosition);
-    state.camera.lookAt(position);
+    // ... old camera logic removed ...
   });
+  */
 
   useEffect(() => {
     if (!result) return;
@@ -120,7 +141,7 @@ export function Car({ thirdPerson, headlightsOn, carBodyRef }) {
   }, [result]);
 
   return (
-    <group ref={vehicle} name="vehicle">
+    <group name="vehicle">
       <group ref={chassisBody} name="chassisBody">
         <primitive object={result} rotation-y={Math.PI} position={[0, -0.09, 0]} />
       </group>
@@ -160,7 +181,7 @@ export function Car({ thirdPerson, headlightsOn, carBodyRef }) {
 
       {/* Engine audio - disabled */}
       {/* <EngineAudio vehicleApi={vehicleApi} /> */}
-      <DriftingScore vehicleApi={vehicleApi} />
+      {/* <DriftingScore vehicleApi={vehicleApi} /> */}
 
       {/* Underglow */}
       <mesh position={[0, -0.05, 0]} rotation-x={-Math.PI / 2}>

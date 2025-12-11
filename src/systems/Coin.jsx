@@ -1,11 +1,10 @@
 import { useBox } from "@react-three/cannon";
 import { useFrame } from "@react-three/fiber";
 import { useRef, useState } from "react";
-import * as THREE from "three";
 import { addScore } from "./profileStore";
 
 export function Coin({ position = [0, 0.5, 0], onCollect }) {
-  const [ref, api] = useBox(() => ({
+  const [ref] = useBox(() => ({
     type: "Static",
     args: [0.3, 0.1, 0.3],
     position,
@@ -32,7 +31,7 @@ export function Coin({ position = [0, 0.5, 0], onCollect }) {
       setCollected(true);
       addScore(10); // 10 points per coin
       if (onCollect) onCollect(position);
-      
+
       // Hide coin
       if (ref.current) {
         ref.current.visible = false;
@@ -60,7 +59,7 @@ export function Coin({ position = [0, 0.5, 0], onCollect }) {
         emissive="#FFAA00"
         emissiveIntensity={0.5}
       />
-      
+
       {/* Glow effect */}
       <mesh position={[0, 0, 0]} scale={1.2}>
         <cylinderGeometry args={[0.18, 0.18, 0.04, 32]} />
