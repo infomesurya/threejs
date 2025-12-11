@@ -10,7 +10,7 @@ import { Trail, Sparkles, SpotLight } from "@react-three/drei";
 import { DriftingScore } from "./DriftingScore";
 
 
-export function Car({ thirdPerson, headlightsOn }) {
+export function Car({ thirdPerson, headlightsOn, carBodyRef }) {
   // thanks to the_86_guy!
   // https://sketchfab.com/3d-models/low-poly-car-muscle-car-2-ac23acdb0bd54ab38ea72008f3312861
   let result = useLoader(
@@ -25,6 +25,9 @@ export function Car({ thirdPerson, headlightsOn }) {
   const wheelRadius = 0.05;
 
   const chassisBodyArgs = [width, height, front * 2];
+  const localRef = useRef(null);
+  const effectiveRef = carBodyRef || localRef;
+
   const [chassisBody, chassisApi] = useBox(
     () => ({
       allowSleep: false,
@@ -32,7 +35,7 @@ export function Car({ thirdPerson, headlightsOn }) {
       mass: 150,
       position,
     }),
-    useRef(null),
+    effectiveRef,
   );
 
   const [wheels, wheelInfos] = useWheels(width, height, front, wheelRadius);

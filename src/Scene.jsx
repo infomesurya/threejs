@@ -4,13 +4,15 @@ import {
   PerspectiveCamera,
   Sky, // Import Sky
 } from "@react-three/drei";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
 import { Car } from "./Car";
 import { Ground } from "./Ground";
 import { Track } from "./Track";
 import { HUD } from "./HUD";
 import { BoostPad } from "./BoostPad";
 import ProceduralWorld from "./world/ProceduralWorld";
+import CameraController from "./systems/CameraController";
+import ParkingZone from "./systems/ParkingZone";
 
 import { FinishLine } from "./FinishLine";
 import { TrafficCone } from "./TrafficCone";
@@ -18,8 +20,9 @@ import { TrafficCone } from "./TrafficCone";
 export function Scene() {
   const [thirdPerson, setThirdPerson] = useState(false);
   const [cameraPosition, setCameraPosition] = useState([-6, 3.9, 6.21]);
-  const [headlightsOn, setHeadlightsOn] = useState(false); // Move state inside component
+  const [headlightsOn, setHeadlightsOn] = useState(false);
   const [proceduralEnabled, setProceduralEnabled] = useState(false);
+  const carBodyRef = useRef(null);
 
   // Key listener for headlights toggle (L)
   useEffect(() => {
@@ -87,14 +90,21 @@ export function Scene() {
       {/* Boost Pads */}
       <BoostPad position={[0, 0.01, -20]} />
 
-      <PerspectiveCamera makeDefault position={cameraPosition} fov={40} />
+      {/* Parking Zones */}
+      <ParkingZone position={[5, 0.05, 0]} size={[3, 0.1, 4]} />
+      <ParkingZone position={[-5, 0.05, -10]} size={[3, 0.1, 4]} />
+
+      <PerspectiveCamera makeDefault position={cameraPosition} fov={40} far={2000} />
       {!thirdPerson && (
         <OrbitControls target={[-2.64, -0.71, 0.03]} />
       )}
 
+      {/* Smooth chase camera (active when thirdPerson is true) */}
+      <CameraController carBodyRef={carBodyRef} enabled={thirdPerson} />
+
       <Ground />
       <Track />
-      <Car thirdPerson={thirdPerson} headlightsOn={headlightsOn} />
+      <Car thirdPerson={thirdPerson} headlightsOn={headlightsOn} carBodyRef={carBodyRef} />
     </Suspense>
   );
 }

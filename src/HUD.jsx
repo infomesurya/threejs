@@ -23,6 +23,9 @@ export function HUD() {
             <div>
                 <div>Lap: {lapTime}s</div>
                 <div>Speed: {speed} km/h</div>
+                <div style={{ color: "#00ff88", marginTop: "10px", fontSize: "12px" }}>
+                  💡 Press K for DR-style camera
+                </div>
             </div>
         </Html>
     );
