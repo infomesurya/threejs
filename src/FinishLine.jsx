@@ -21,7 +21,7 @@ export function FinishLine({ position = [0, 0, 0] }) {
 
 
     return (
-        <group position={position}>
+        <group ref={ref} position={position}>
             {/* Arch pillars */}
             <mesh position={[-1.5, 1, 0]}>
                 <boxGeometry args={[0.2, 2, 0.2]} />

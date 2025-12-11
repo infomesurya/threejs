@@ -8,7 +8,7 @@ export function ColliderBox({ position, scale }) {
     position,
     type: "Static",
   }));
-
+//hoosd
   return (
     debug && (
       <mesh position={position}>
