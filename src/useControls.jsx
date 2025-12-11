@@ -58,11 +58,11 @@ export const useControls = (vehicleApi, chassisApi, isOnTrack = true) => {
     const { w, s, a, d, arrowdown, arrowup, arrowleft, arrowright, r } = controlsRef.current;
 
     if (w) {
-      vehicleApi.applyEngineForce(8000, 2);
-      vehicleApi.applyEngineForce(8000, 3);
+      vehicleApi.applyEngineForce(5000, 2);
+      vehicleApi.applyEngineForce(5000, 3);
     } else if (s) {
-      vehicleApi.applyEngineForce(-6000, 2);
-      vehicleApi.applyEngineForce(-6000, 3);
+      vehicleApi.applyEngineForce(-4000, 2);
+      vehicleApi.applyEngineForce(-4000, 3);
     } else {
       vehicleApi.applyEngineForce(0, 2);
       vehicleApi.applyEngineForce(0, 3);

@@ -18,7 +18,7 @@ export function Car({ thirdPerson, headlightsOn, carBodyRef }) {
     process.env.PUBLIC_URL + "/models/car.glb"
   ).scene;
 
-  const position = [-1.5, 0.8, 3];
+  const position = [-1.5, 0.4, 3];
   const width = 0.6;
   const height = 0.3;
   const front = 0.8;
@@ -33,7 +33,7 @@ export function Car({ thirdPerson, headlightsOn, carBodyRef }) {
     () => ({
       allowSleep: false,
       args: chassisBodyArgs,
-      mass: 500,
+      mass: 300,
       position,
     }),
     effectiveRef,
@@ -64,7 +64,7 @@ export function Car({ thirdPerson, headlightsOn, carBodyRef }) {
   const { isOnTrack, offTrackDuration, trackBounds } = useTrackDetection(chassisBody);
   const { resetPosition, gameStatus } = useGameState();
 
-  const canMove = isOnTrack && (gameStatus === 'playing' || gameStatus === 'start');
+  const canMove = (gameStatus === 'playing' || gameStatus === 'start');
   // Only pass vehicleApi to useControls when it's ready
   const controls = useControls(
     vehicleReady ? vehicleApi : null,
