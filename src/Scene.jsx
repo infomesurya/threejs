@@ -37,7 +37,7 @@ export function Scene() {
 
   useEffect(() => {
     function keydownHandler(e) {
-      if (e.key === "k") {
+      if (e.key.toLowerCase() === "k") {
         // random is necessary to trigger a state change
         if (thirdPerson) setCameraPosition([-6, 3.9, 6.21 + Math.random() * 0.01]);
         setThirdPerson(!thirdPerson);

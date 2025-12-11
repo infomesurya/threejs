@@ -1,21 +1,25 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 
 export const useControls = (vehicleApi, chassisApi, isOnTrack = true) => {
-  let [controls, setControls] = useState({});
   const controlsRef = useRef({});
+  const resetTriggeredRef = useRef(false);
 
   useEffect(() => {
     const keyDownPressHandler = (e) => {
       const key = e.key.toLowerCase();
-      setControls((controls) => ({ ...controls, [key]: true }));
       controlsRef.current[key] = true;
+      if (key === 'r' && !resetTriggeredRef.current) {
+        resetTriggeredRef.current = true;
+      }
     }
 
     const keyUpPressHandler = (e) => {
       const key = e.key.toLowerCase();
-      setControls((controls) => ({ ...controls, [key]: false }));
       controlsRef.current[key] = false;
+      if (key === 'r') {
+        resetTriggeredRef.current = false;
+      }
     }
 
     window.addEventListener("keydown", keyDownPressHandler);
@@ -54,11 +58,11 @@ export const useControls = (vehicleApi, chassisApi, isOnTrack = true) => {
     const { w, s, a, d, arrowdown, arrowup, arrowleft, arrowright, r } = controlsRef.current;
 
     if (w) {
-      vehicleApi.applyEngineForce(2000, 2);
-      vehicleApi.applyEngineForce(2000, 3);
+      vehicleApi.applyEngineForce(3000, 2);
+      vehicleApi.applyEngineForce(3000, 3);
     } else if (s) {
-      vehicleApi.applyEngineForce(-2000, 2);
-      vehicleApi.applyEngineForce(-2000, 3);
+      vehicleApi.applyEngineForce(-2500, 2);
+      vehicleApi.applyEngineForce(-2500, 3);
     } else {
       vehicleApi.applyEngineForce(0, 2);
       vehicleApi.applyEngineForce(0, 3);
@@ -87,13 +91,15 @@ export const useControls = (vehicleApi, chassisApi, isOnTrack = true) => {
     if (arrowleft) chassisApi.applyLocalImpulse([0, -2.5, 0], [-0.5, 0, 0]);
     if (arrowright) chassisApi.applyLocalImpulse([0, -2.5, 0], [+0.5, 0, 0]);
 
-    if (r) {
+    if (r && resetTriggeredRef.current) {
+      // Reset to starting position (only once per key press)
       chassisApi.velocity.set(0, 0, 0);
       chassisApi.angularVelocity.set(0, 0, 0);
       chassisApi.rotation.set(0, 0, 0);
       chassisApi.position.set(-1.5, 0.5, 3);
+      resetTriggeredRef.current = false; // Reset the trigger
     }
   });
 
-  return controls;
+  return controlsRef.current;
 }

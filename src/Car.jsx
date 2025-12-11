@@ -10,8 +10,6 @@ import { Trail, Sparkles, SpotLight } from "@react-three/drei";
 import useTrackDetection from "./systems/useTrackDetection";
 import { updateGameState, useGameState } from "./systems/gameStateStore";
 
-
-
 export function Car({ thirdPerson, headlightsOn, carBodyRef }) {
   // thanks to the_86_guy!
   // https://sketchfab.com/3d-models/low-poly-car-muscle-car-2-ac23acdb0bd54ab38ea72008f3312861
@@ -43,7 +41,7 @@ export function Car({ thirdPerson, headlightsOn, carBodyRef }) {
 
   const [wheels, wheelInfos] = useWheels(width, height, front, wheelRadius);
 
-  const [vehicle, vehicleApi] = useRaycastVehicle(
+  const [, vehicleApi] = useRaycastVehicle(
     () => ({
       chassisBody,
       wheelInfos,
@@ -66,7 +64,7 @@ export function Car({ thirdPerson, headlightsOn, carBodyRef }) {
   const { isOnTrack, offTrackDuration, trackBounds } = useTrackDetection(chassisBody);
   const { resetPosition, gameStatus } = useGameState();
 
-  const canMove = isOnTrack && gameStatus === 'playing';
+  const canMove = isOnTrack && (gameStatus === 'playing' || gameStatus === 'start');
   // Only pass vehicleApi to useControls when it's ready
   const controls = useControls(
     vehicleReady ? vehicleApi : null,
@@ -124,7 +122,7 @@ export function Car({ thirdPerson, headlightsOn, carBodyRef }) {
   // const camPosRef = useRef(new Vector3());
 
   // Camera logic moved to CameraController.jsx to prevent conflict
-  /* 
+  /*
   useFrame((state) => {
     if (!thirdPerson) return;
     // ... old camera logic removed ...
