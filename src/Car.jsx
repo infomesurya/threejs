@@ -8,6 +8,8 @@ import { useWheels } from "./useWheels";
 import { WheelDebug } from "./WheelDebug";
 import { Trail, Sparkles, SpotLight } from "@react-three/drei";
 import { DriftingScore } from "./DriftingScore";
+import useTrackDetection from "./systems/useTrackDetection";
+import { updateGameState } from "./systems/gameStateStore";
 
 
 export function Car({ thirdPerson, headlightsOn, carBodyRef }) {
@@ -50,6 +52,33 @@ export function Car({ thirdPerson, headlightsOn, carBodyRef }) {
   );
 
   const controls = useControls(vehicleApi, chassisApi);
+
+  // Track detection
+  const { isOnTrack, offTrackDuration, trackBounds } = useTrackDetection(chassisBody);
+
+  // Auto-return car to track when off-road for too long
+  useEffect(() => {
+    if (offTrackDuration > 3 && !isOnTrack && chassisBody?.current) {
+      // Reset car position to center of track
+      const trackCenterX = (trackBounds.minX + trackBounds.maxX) / 2;
+      const trackCenterZ = (trackBounds.minZ + trackBounds.maxZ) / 2;
+      
+      chassisBody.current.position.set(trackCenterX, 1, trackCenterZ);
+      chassisBody.current.velocity.set(0, 0, 0);
+      chassisBody.current.angularVelocity.set(0, 0, 0);
+      
+      // Reset vehicle
+      vehicleApi.reset();
+    }
+  }, [offTrackDuration, isOnTrack, trackBounds, vehicleApi, chassisBody]);
+
+  // Publish game state changes
+  useEffect(() => {
+    updateGameState({
+      isOnTrack,
+      offTrackDuration,
+    });
+  }, [isOnTrack, offTrackDuration]);
 
   // Skid mark trails for each wheel when braking (s) or drifting (a/d)
   const isBraking = controls.s;

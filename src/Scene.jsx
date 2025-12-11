@@ -1,8 +1,7 @@
 import {
-  Environment,
   OrbitControls,
   PerspectiveCamera,
-  Sky, // Import Sky
+  Sky,
 } from "@react-three/drei";
 import { Suspense, useEffect, useState, useRef } from "react";
 import { Car } from "./Car";
@@ -13,6 +12,7 @@ import { BoostPad } from "./BoostPad";
 import ProceduralWorld from "./world/ProceduralWorld";
 import CameraController from "./systems/CameraController";
 import ParkingZone from "./systems/ParkingZone";
+import Coin from "./systems/Coin";
 
 import { FinishLine } from "./FinishLine";
 import { TrafficCone } from "./TrafficCone";
@@ -96,7 +96,7 @@ export function Scene() {
 
       <PerspectiveCamera makeDefault position={cameraPosition} fov={40} far={2000} />
       {!thirdPerson && (
-        <OrbitControls target={[-2.64, -0.71, 0.03]} />
+        <OrbitControls target={[-2.64, -0.71, 0.03]} enableZoom={false} />
       )}
 
       {/* Smooth chase camera (active when thirdPerson is true) */}
