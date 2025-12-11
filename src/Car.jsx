@@ -18,11 +18,11 @@ export function Car({ thirdPerson, headlightsOn, carBodyRef }) {
     process.env.PUBLIC_URL + "/models/car.glb"
   ).scene;
 
-  const position = [-1.5, 0.5, 3];
-  const width = 0.15;
-  const height = 0.07;
-  const front = 0.15;
-  const wheelRadius = 0.05;
+  const position = [-1.5, 0.8, 3];
+  const width = 0.6;
+  const height = 0.3;
+  const front = 0.8;
+  const wheelRadius = 0.2;
 
   const chassisBodyArgs = [width, height, front * 2];
   const localRef = useRef(null);
@@ -33,7 +33,7 @@ export function Car({ thirdPerson, headlightsOn, carBodyRef }) {
     () => ({
       allowSleep: false,
       args: chassisBodyArgs,
-      mass: 150,
+      mass: 500,
       position,
     }),
     effectiveRef,

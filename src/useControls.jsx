@@ -58,24 +58,24 @@ export const useControls = (vehicleApi, chassisApi, isOnTrack = true) => {
     const { w, s, a, d, arrowdown, arrowup, arrowleft, arrowright, r } = controlsRef.current;
 
     if (w) {
-      vehicleApi.applyEngineForce(3000, 2);
-      vehicleApi.applyEngineForce(3000, 3);
+      vehicleApi.applyEngineForce(8000, 2);
+      vehicleApi.applyEngineForce(8000, 3);
     } else if (s) {
-      vehicleApi.applyEngineForce(-2500, 2);
-      vehicleApi.applyEngineForce(-2500, 3);
+      vehicleApi.applyEngineForce(-6000, 2);
+      vehicleApi.applyEngineForce(-6000, 3);
     } else {
       vehicleApi.applyEngineForce(0, 2);
       vehicleApi.applyEngineForce(0, 3);
     }
 
     if (a) {
-      vehicleApi.setSteeringValue(0.35, 2);
-      vehicleApi.setSteeringValue(0.35, 3);
+      vehicleApi.setSteeringValue(0.5, 2);
+      vehicleApi.setSteeringValue(0.5, 3);
       vehicleApi.setSteeringValue(-0.1, 0);
       vehicleApi.setSteeringValue(-0.1, 1);
     } else if (d) {
-      vehicleApi.setSteeringValue(-0.35, 2);
-      vehicleApi.setSteeringValue(-0.35, 3);
+      vehicleApi.setSteeringValue(-0.5, 2);
+      vehicleApi.setSteeringValue(-0.5, 3);
       vehicleApi.setSteeringValue(0.1, 0);
       vehicleApi.setSteeringValue(0.1, 1);
     } else {
