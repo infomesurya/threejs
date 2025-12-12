@@ -18,7 +18,7 @@ export const Car = ({ selectedCarPath, selectedCarName, thirdPerson, headlightsO
   // Physics box for the car
   const [ref, api] = useBox(() => ({
     mass: 1,
-    shape: "box",
+
     args: [0.5, 0.8, 1.8],
     linearDamping: 0.3,
     angularDamping: 0.5,
@@ -110,7 +110,7 @@ export const Car = ({ selectedCarPath, selectedCarName, thirdPerson, headlightsO
     forward.applyQuaternion(rot);
 
     // Apply velocity
-    const currentVel = ref.current.getLinearVelocity(new THREE.Vector3());
+    const currentVel = new THREE.Vector3(api.velocity.x, api.velocity.y, api.velocity.z);
     const newVel = forward.multiplyScalar(velocity.current);
     api.velocity.set(newVel.x, currentVel.y, newVel.z);
 
