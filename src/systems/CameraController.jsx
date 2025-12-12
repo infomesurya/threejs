@@ -8,11 +8,11 @@ import { Vector3, Quaternion } from "three";
 export function CameraController({ carBodyRef, enabled = true }) {
   const { camera } = useThree();
 
-  // Camera follow parameters (tunable)
-  const cameraDistance = 1.2; // how far back
-  const cameraHeight = 0.5; // how high
-  const cameraLookAhead = 0.3; // where to look (ahead of car)
-  const smoothFactor = 0.08; // lower = smoother (0.05-0.15)
+  // Camera follow parameters (tunable) - CLOSE RACING VIEW
+  const cameraDistance = 1.5; // very close for racing feel
+  const cameraHeight = 0.7; // at eye level
+  const cameraLookAhead = 0.4; // look ahead of car
+  const smoothFactor = 0.12; // responsive but smooth
 
   const targetPos = new Vector3();
   const targetLook = new Vector3();
