@@ -11,17 +11,26 @@ export function BoostPad({ position = [0, 0.01, 0], size = [2, 0.02, 2] }) {
         position,
         isTrigger: true,
         onCollide: (e) => {
-            const body = e.body; // the other body (car chassis)
-            if (body && body.userData && body.userData.vehicleApi) {
-                const vehicleApi = body.userData.vehicleApi;
-                const boost = 1.5; // 50% more torque
-                const originalForce = 150; // assume base force
-                vehicleApi.applyEngineForce(originalForce * boost, 2);
-                vehicleApi.applyEngineForce(originalForce * boost, 3);
-                setTimeout(() => {
-                    vehicleApi.applyEngineForce(originalForce, 2);
-                    vehicleApi.applyEngineForce(originalForce, 3);
-                }, 3000);
+            try {
+                const body = e.body; // the other body (car chassis)
+                if (body && body.userData && body.userData.vehicleApi) {
+                    const vehicleApi = body.userData.vehicleApi;
+                    // Check if vehicleApi methods exist
+                    if (vehicleApi && typeof vehicleApi.applyEngineForce === 'function') {
+                        const boost = 1.5; // 50% more torque
+                        const originalForce = 150; // assume base force
+                        vehicleApi.applyEngineForce(originalForce * boost, 2);
+                        vehicleApi.applyEngineForce(originalForce * boost, 3);
+                        setTimeout(() => {
+                            if (vehicleApi && typeof vehicleApi.applyEngineForce === 'function') {
+                                vehicleApi.applyEngineForce(originalForce, 2);
+                                vehicleApi.applyEngineForce(originalForce, 3);
+                            }
+                        }, 3000);
+                    }
+                }
+            } catch (error) {
+                console.warn("BoostPad collision error:", error);
             }
         }
     }));

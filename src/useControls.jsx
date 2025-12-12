@@ -44,6 +44,11 @@ export const useControls = (vehicleApi, chassisApi, isOnTrack = true) => {
       return;
     }
 
+    // Additional safety check for isOnTrack
+    if (typeof isOnTrack !== 'boolean') {
+      return;
+    }
+
     if (!isOnTrack) {
       vehicleApi.setBrake(10, 2);
       vehicleApi.setBrake(10, 3);

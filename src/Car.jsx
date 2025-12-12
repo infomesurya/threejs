@@ -57,8 +57,18 @@ export function Car({ thirdPerson, headlightsOn, carBodyRef }) {
     // Check if vehicleApi is ready by testing if methods exist
     if (vehicleApi && typeof vehicleApi.applyEngineForce === 'function') {
       setVehicleReady(true);
+      // Set vehicleApi on chassis body's userData for collision detection
+      if (chassisBody.current) {
+        chassisBody.current.userData = chassisBody.current.userData || {};
+        chassisBody.current.userData.vehicleApi = vehicleApi;
+      }
+    } else {
+      // If vehicleApi is not ready, ensure we don't have stale references
+      if (chassisBody.current && chassisBody.current.userData) {
+        chassisBody.current.userData.vehicleApi = undefined;
+      }
     }
-  }, [vehicleApi]);
+  }, [vehicleApi, chassisBody]);
 
   // Track detection
   const { isOnTrack, offTrackDuration, trackBounds } = useTrackDetection(chassisBody);
