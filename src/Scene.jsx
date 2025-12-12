@@ -41,6 +41,12 @@ export function Scene() {
         // random is necessary to trigger a state change
         if (thirdPerson) setCameraPosition([-6, 3.9, 6.21 + Math.random() * 0.01]);
         setThirdPerson(!thirdPerson);
+
+        // Disable orbit controls when in third-person car view
+        const orbitControls = document.querySelector('canvas')?.parentElement?.querySelector('[data-orbit-controls]');
+        if (orbitControls) {
+          orbitControls.style.pointerEvents = thirdPerson ? 'auto' : 'none';
+        }
       }
     }
 

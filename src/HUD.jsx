@@ -9,7 +9,7 @@ export function HUD() {
     const [lapTime, setLapTime] = useState(0);
     const [speed, setSpeed] = useState(0);
     const [timeLeft, setTimeLeft] = useState("1:00.0"); // 60 seconds
-    const startRef = useRef(0);
+            const startRef = useRef(0);
 
     // Game state
     const { isOnTrack, gameStatus } = useGameState();
@@ -19,9 +19,9 @@ export function HUD() {
 
         if (currentStatus === 'playing') {
             const now = Date.now();
-            // Calculate remaining time
+            // Calculate remaining time - changed from 60 to 30 seconds
             const elapsed = (now - startRef.current) / 1000;
-            const remaining = Math.max(60 - elapsed, 0);
+            const remaining = Math.max(30 - elapsed, 0);
             setTimeLeft(remaining.toFixed(1));
 
             if (remaining <= 0) {
@@ -60,7 +60,7 @@ export function HUD() {
                         <div>Lap: {lapTime}s</div>
                         <div>Speed: {speed} km/h</div>
                         <div style={{ color: "#00ff88", marginTop: "10px", fontSize: "12px" }}>
-                            💡 Press K for DR-style camera
+                            💡 Press K to toggle car chase camera
                         </div>
                     </div>
                 </Html>
@@ -84,7 +84,7 @@ export function HUD() {
                             RACING GAME
                         </h1>
                         <p style={{ fontSize: "18px", color: "#aaa", marginBottom: "30px" }}>
-                            Complete as many laps as you can in 60 seconds!
+                            Complete as many laps as you can in 30 seconds!
                         </p>
                         <button
                             onClick={startGame}

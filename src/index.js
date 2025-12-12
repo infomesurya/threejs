@@ -20,10 +20,10 @@ createRoot(document.getElementById("root")).render(
     {/* EngineAudio disabled */}
 
     <div className="controls">
-      <p>press w a s d to move</p>
-      <p>press k to swap camera</p>
-      <p>press r to reset</p>
-      <p>press arrows for flips</p>
+      <p>🎮 <strong>WASD</strong> to drive</p>
+      <p>🔄 <strong>K</strong> to toggle car chase camera</p>
+      <p>🔙 <strong>R</strong> to reset car position</p>
+      <p>🤸 <strong>Arrow Keys</strong> for flips & stunts</p>
     </div>
   </>
 )
