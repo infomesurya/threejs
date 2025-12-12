@@ -1,340 +1,211 @@
+import React, { useEffect, useRef } from "react";
+import { useFrame, useLoader } from "@react-three/fiber";
 import { useBox } from "@react-three/cannon";
-import { useFrame, useThree, useLoader } from "@react-three/fiber";
-import { useEffect, useRef } from "react";
-import { Quaternion, Vector3 } from "three";
-import { Trail, Sparkles, SpotLight } from "@react-three/drei";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { updateGameState } from "./systems/gameStateStore";
+import { Trail, Sparkles } from "@react-three/drei";
+import * as THREE from "three";
 
-export function Car({ thirdPerson = false, headlightsOn = true, carBodyRef }) {
-  // Load car model - ALL HOOKS AT TOP LEVEL
-  const carModelData = useLoader(GLTFLoader, process.env.PUBLIC_URL + "/models/car.glb");
-  
-  const meshRef = useRef(null);
-  const carVisualRef = useRef(null);
-  const { camera } = useThree();
+export const Car = ({ selectedCarPath, selectedCarName, thirdPerson, headlightsOn }) => {
+  const groupRef = useRef();
+  const carVisualRef = useRef(new THREE.Group());
+  const velocity = useRef(0);
+  const angularVelocity = useRef(0);
+  const keysPressed = useRef({});
 
-  // Car dimensions
-  const width = 0.5;
-  const height = 0.8;
-  const length = 1.8;
+  // Load the selected car model
+  const carModelData = useLoader(GLTFLoader, selectedCarPath || "/models/car.glb");
 
-  const [, chassisApi] = useBox(
-    () => ({
-      allowSleep: false,
-      args: [width, height, length],
-      mass: 150,
-      position: [-1.5, 0.5, 3],
-      linearDamping: 0.2,
-      angularDamping: 0.4,
-    }),
-    meshRef
-  );
+  // Physics box for the car
+  const [ref, api] = useBox(() => ({
+    mass: 1,
+    shape: "box",
+    args: [0.5, 0.8, 1.8],
+    linearDamping: 0.3,
+    angularDamping: 0.5,
+    position: [-1.5, 0.5, 3],
+  }));
 
-  // Sync ref for Scene camera controller
+  // Clone car model from GLB
   useEffect(() => {
-    if (carBodyRef && meshRef.current) {
-      carBodyRef.current = meshRef.current;
+    if (!carModelData || !carVisualRef.current) {
+      console.log("Waiting for car model...");
+      return;
     }
-  }, [carBodyRef]);
 
-  // Clone and setup car model
-  useEffect(() => {
-    if (!carModelData || !carVisualRef.current) return;
-    
     try {
-      // Clear previous children
-      while (carVisualRef.current.children.length > 0) {
-        carVisualRef.current.removeChild(carVisualRef.current.children[0]);
-      }
-      
-      // Clone the model
+      carVisualRef.current.clear();
       const clonedModel = carModelData.scene.clone();
-      
-      // Scale and position the model
-      clonedModel.scale.set(1.2, 1.2, 1.2);
-      clonedModel.position.set(0, -0.2, 0);
-      
-      // Enable shadows for all meshes
+      clonedModel.scale.set(2.0, 2.0, 2.0);
+      clonedModel.position.set(0, 0, 0);
+
+      console.log("Car model loaded:", selectedCarName, clonedModel);
+
+      // Setup shadows
       clonedModel.traverse((node) => {
         if (node.isMesh) {
           node.castShadow = true;
           node.receiveShadow = true;
         }
       });
-      
+
       carVisualRef.current.add(clonedModel);
     } catch (e) {
-      console.error("Error setting up car model:", e);
+      console.error("Error cloning car model:", e);
     }
-  }, [carModelData]);
+  }, [carModelData, selectedCarName]);
 
-  // Keyboard state
-  const keysRef = useRef({});
-  const trackStateRef = useRef({ isOnTrack: true, offTrackDuration: 0 });
-
-  // Setup keyboard controls
+  // Keyboard input handling
   useEffect(() => {
     const handleKeyDown = (e) => {
-      keysRef.current[e.key.toLowerCase()] = true;
+      keysPressed.current[e.key.toLowerCase()] = true;
+
+      // R - Reset position
+      if (e.key === "r" || e.key === "R") {
+        api.position.set(-1.5, 0.5, 3);
+        api.velocity.set(0, 0, 0);
+        api.angularVelocity.set(0, 0, 0);
+        velocity.current = 0;
+        angularVelocity.current = 0;
+      }
     };
+
     const handleKeyUp = (e) => {
-      keysRef.current[e.key.toLowerCase()] = false;
+      keysPressed.current[e.key.toLowerCase()] = false;
     };
+
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
+
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, []);
+  }, [api]);
 
-  // Main physics and input loop
-  useFrame(({ clock }) => {
-    if (!chassisApi || !meshRef.current) return;
+  // Physics and movement loop
+  useFrame(() => {
+    if (!ref.current || !api) return;
 
-    const keys = keysRef.current;
-    const { w, s, a, d, r, arrowup, arrowdown } = keys;
+    const w = keysPressed.current["w"];
+    const s = keysPressed.current["s"];
+    const a = keysPressed.current["a"];
+    const d = keysPressed.current["d"];
 
-    // Check track bounds
-    const carPos = new Vector3();
-    carPos.setFromMatrixPosition(meshRef.current.matrixWorld);
-    
-    const isOnTrack = carPos.x > -15 && carPos.x < 15 && carPos.z > -15 && carPos.z < 20;
-    
-    if (!isOnTrack) {
-      trackStateRef.current.offTrackDuration += 1;
-      trackStateRef.current.isOnTrack = false;
-    } else {
-      trackStateRef.current.offTrackDuration = 0;
-      trackStateRef.current.isOnTrack = true;
+    // Acceleration/Braking
+    if (w) velocity.current = Math.max(velocity.current - 0.8, -12);
+    if (s) velocity.current = Math.min(velocity.current + 0.8, 12);
+    if (!w && !s) velocity.current *= 0.95; // Friction
+
+    // Steering
+    if (a) angularVelocity.current = 4;
+    else if (d) angularVelocity.current = -4;
+    else angularVelocity.current *= 0.9;
+
+    // Get current position
+    const pos = ref.current.getWorldPosition(new THREE.Vector3());
+    const rot = ref.current.quaternion;
+
+    // Get forward direction
+    const forward = new THREE.Vector3(0, 0, -1);
+    forward.applyQuaternion(rot);
+
+    // Apply velocity
+    const currentVel = ref.current.getLinearVelocity(new THREE.Vector3());
+    const newVel = forward.multiplyScalar(velocity.current);
+    api.velocity.set(newVel.x, currentVel.y, newVel.z);
+
+    // Apply rotation
+    api.angularVelocity.set(0, angularVelocity.current, 0);
+
+    // Track boundaries - auto brake if off track
+    if (pos.x < -15 || pos.x > 15 || pos.z < -15 || pos.z > 20) {
+      velocity.current *= 0.88;
     }
 
-    // Update game state
-    updateGameState({ 
-      isOnTrack: trackStateRef.current.isOnTrack,
-      offTrackDuration: trackStateRef.current.offTrackDuration
-    });
-
-    // Auto-reset if off track too long
-    if (trackStateRef.current.offTrackDuration > 300) {
-      try {
-        chassisApi.position.set(-1.5, 0.5, 3);
-        chassisApi.velocity.set(0, 0, 0);
-        chassisApi.angularVelocity.set(0, 0, 0);
-        trackStateRef.current.offTrackDuration = 0;
-      } catch (e) {
-        // Ignore
-      }
-      return;
+    // Flip control (arrow keys)
+    if (keysPressed.current["arrowup"]) {
+      api.velocity.set(0, 8, 0);
+    }
+    if (keysPressed.current["arrowdown"]) {
+      api.velocity.set(0, -8, 0);
     }
 
-    // Get current velocity
-    let vel = [0, 0, 0];
-    try {
-      if (chassisApi.velocity?.current) {
-        vel = [...chassisApi.velocity.current];
-      }
-    } catch (e) {
-      // Use default
-    }
-
-    // Apply throttle - W key forward
-    if (w && isOnTrack) {
-      const newVelZ = Math.max(vel[2] - 0.8, -12);
-      try {
-        chassisApi.velocity.set(vel[0], vel[1], newVelZ);
-      } catch (e) {
-        // Ignore
-      }
-    } else if (s && isOnTrack) {
-      // S key reverse
-      const newVelZ = Math.min(vel[2] + 0.8, 12);
-      try {
-        chassisApi.velocity.set(vel[0], vel[1], newVelZ);
-      } catch (e) {
-        // Ignore
-      }
-    } else {
-      // Coast with friction
-      try {
-        chassisApi.velocity.set(vel[0] * 0.92, vel[1], vel[2] * 0.92);
-      } catch (e) {
-        // Ignore
-      }
-    }
-
-    // Get current angular velocity
-    let angVel = [0, 0, 0];
-    try {
-      if (chassisApi.angularVelocity?.current) {
-        angVel = [...chassisApi.angularVelocity.current];
-      }
-    } catch (e) {
-      // Use default
-    }
-
-    // Apply steering - A/D keys for left/right
-    if (a && isOnTrack) {
-      try {
-        chassisApi.angularVelocity.set(angVel[0], 4, angVel[2]);
-      } catch (e) {
-        // Ignore
-      }
-    } else if (d && isOnTrack) {
-      try {
-        chassisApi.angularVelocity.set(angVel[0], -4, angVel[2]);
-      } catch (e) {
-        // Ignore
-      }
-    } else {
-      try {
-        chassisApi.angularVelocity.set(angVel[0] * 0.85, angVel[1] * 0.85, angVel[2] * 0.85);
-      } catch (e) {
-        // Ignore
-      }
-    }
-
-    // Flip controls - Arrow keys
-    if (arrowup) {
-      try {
-        chassisApi.applyLocalImpulse([0, 2.5, -1.2], [0, 0, 0.5]);
-      } catch (e) {
-        // Ignore
-      }
-      keys.arrowup = false;
-    }
-    if (arrowdown) {
-      try {
-        chassisApi.applyLocalImpulse([0, 2.5, 1.2], [0, 0, -0.5]);
-      } catch (e) {
-        // Ignore
-      }
-      keys.arrowdown = false;
-    }
-
-    // Reset position - R key
-    if (r) {
-      try {
-        chassisApi.position.set(-1.5, 0.5, 3);
-        chassisApi.velocity.set(0, 0, 0);
-        chassisApi.angularVelocity.set(0, 0, 0);
-      } catch (e) {
-        // Ignore
-      }
-      keys.r = false;
-    }
-
-    // Off-track braking
-    if (!isOnTrack) {
-      try {
-        chassisApi.velocity.set(vel[0] * 0.88, vel[1], vel[2] * 0.88);
-      } catch (e) {
-        // Ignore
-      }
-    }
-
-    // Third-person camera - K key toggle
-    if (thirdPerson && meshRef.current) {
-      try {
-        const carQuat = new Quaternion();
-        carQuat.setFromRotationMatrix(meshRef.current.matrixWorld);
-        
-        const carForward = new Vector3(0, 0, -1).applyQuaternion(carQuat);
-        carForward.normalize();
-
-        const targetPos = carPos
-          .clone()
-          .addScaledVector(carForward, 1.5)
-          .add(new Vector3(0, 0.7, 0));
-
-        const lookPos = carPos
-          .clone()
-          .addScaledVector(carForward, 0.4)
-          .add(new Vector3(0, 0.3, 0));
-
-        camera.position.lerp(targetPos, 0.1);
-        camera.lookAt(lookPos);
-      } catch (e) {
-        // Ignore
-      }
+    // Update visual position from physics
+    if (groupRef.current && ref.current) {
+      const pos = ref.current.getWorldPosition(new THREE.Vector3());
+      groupRef.current.position.copy(pos);
+      groupRef.current.quaternion.copy(ref.current.quaternion);
     }
   });
 
-  // Determine if showing effects
-  const keys = keysRef.current;
-  const showEffects = (keys.s || keys.a || keys.d) && trackStateRef.current.isOnTrack;
-
   return (
-    <group ref={meshRef}>
-      {/* Invisible physics body */}
-      <mesh castShadow receiveShadow position={[0, 0, 0]}>
-        <boxGeometry args={[width, height, length]} />
-        <meshStandardMaterial transparent opacity={0} wireframe={false} />
-      </mesh>
+    <group ref={groupRef}>
+      {/* Physics body (invisible) */}
+      <group ref={ref}>
+        {/* Visual model */}
+        <group ref={carVisualRef} />
 
-      {/* Car GLB Model Container - ALWAYS RENDERED */}
-      <group ref={carVisualRef} position={[0, 0, 0]} />
+        {/* Trail effect on drift */}
+        {velocity.current > 5 && (
+          <>
+            <Trail width={0.2} length={30} decay={1.5} color="#00ff88" attenuation={(t) => t * t} />
+          </>
+        )}
 
-      {/* Trail effect */}
-      {showEffects && (
-        <Trail
-          width={0.12}
-          length={12}
-          decay={1.2}
-          color="#888"
-          attenuation={(t) => t * t}
-        >
-          <mesh position={[0, -height / 2, 0]} />
-        </Trail>
-      )}
+        {/* Sparkles effect */}
+        <Sparkles count={25} scale={2} size={2} speed={0.5} color="#00a86b" />
 
-      {/* Drift sparkles */}
-      {showEffects && (
-        <Sparkles
-          count={25}
-          scale={[width * 1.5, height * 0.5, length]}
-          size={1.5}
-          speed={0.3}
-          opacity={0.6}
+        {/* Headlights */}
+        {headlightsOn && (
+          <>
+            {/* Right headlight */}
+            <pointLight
+              position={[0.3, 0.3, 1]}
+              intensity={2}
+              distance={20}
+              color="#ffff99"
+              castShadow
+            />
+            <spotLight
+              position={[0.3, 0.3, 1]}
+              target-position={[0.3, -5, 20]}
+              intensity={1.5}
+              angle={0.6}
+              distance={50}
+              color="#ffff99"
+              castShadow
+            />
+
+            {/* Left headlight */}
+            <pointLight
+              position={[-0.3, 0.3, 1]}
+              intensity={2}
+              distance={20}
+              color="#ffff99"
+              castShadow
+            />
+            <spotLight
+              position={[-0.3, 0.3, 1]}
+              target-position={[-0.3, -5, 20]}
+              intensity={1.5}
+              angle={0.6}
+              distance={50}
+              color="#ffff99"
+              castShadow
+            />
+          </>
+        )}
+
+        {/* Neon underglow */}
+        <pointLight
+          position={[0, -0.4, 0]}
+          intensity={1.5}
+          distance={5}
+          color="#00ff88"
         />
-      )}
-
-      {/* Headlights - L key toggle */}
-      {headlightsOn && (
-        <>
-          <SpotLight
-            position={[-width / 4, height / 3, -length / 2.2]}
-            angle={0.35}
-            penumbra={0.5}
-            distance={15}
-            intensity={1.8}
-            color="#ffffcc"
-            castShadow
-          />
-          <SpotLight
-            position={[width / 4, height / 3, -length / 2.2]}
-            angle={0.35}
-            penumbra={0.5}
-            distance={15}
-            intensity={1.8}
-            color="#ffffcc"
-            castShadow
-          />
-        </>
-      )}
-
-      {/* Underglow neon */}
-      <mesh position={[0, -height / 2 - 0.01, 0]} rotation-x={-Math.PI / 2}>
-        <planeGeometry args={[width * 1.3, length * 1.4]} />
-        <meshBasicMaterial
-          color="#00ffff"
-          transparent
-          opacity={0.2}
-          toneMapped={false}
-          depthWrite={false}
-        />
-      </mesh>
+      </group>
     </group>
   );
-}
+};
+
+export default Car;

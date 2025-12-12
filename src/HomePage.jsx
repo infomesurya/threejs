@@ -1,26 +1,76 @@
 import React, { useState } from 'react';
-import { Canvas, useLoader } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/cannon';
 import { Scene } from './Scene';
+import CarSelector from './CarSelector';
 import TrackStatusHUD from './systems/TrackStatusHUD';
 import ProfileHUD from './systems/ProfileHUD';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
-const HomePageMenu = ({ onStartGame }) => {
+export default function HomePage() {
+  const [gameState, setGameState] = useState('menu'); // 'menu' | 'selector' | 'game'
+  const [selectedCar, setSelectedCar] = useState(null);
+  const [selectedCarName, setSelectedCarName] = useState(null);
+
+  const handleStartGame = () => {
+    setGameState('selector');
+  };
+
+  const handleCarSelected = (carPath, carName) => {
+    setSelectedCar(carPath);
+    setSelectedCarName(carName);
+    setGameState('game');
+  };
+
+  // Game Screen
+  if (gameState === 'game') {
+    return (
+      <>
+        <Canvas
+          shadows
+          dpr={[1, 2]}
+          gl={{ antialias: true, alpha: false }}
+          camera={{ position: [0, 5, 15], fov: 45 }}
+        >
+          <color attach="background" args={['#87CEEB']} />
+          <ambientLight intensity={0.6} />
+          <directionalLight
+            position={[100, 50, 100]}
+            intensity={1.2}
+            shadow-mapSize-width={2048}
+            shadow-mapSize-height={2048}
+            castShadow
+          />
+
+          <Physics broadphase="SAP" gravity={[0, -2.6, 0]}>
+            <Scene selectedCarPath={selectedCar} selectedCarName={selectedCarName} />
+          </Physics>
+        </Canvas>
+
+        <ProfileHUD />
+        <TrackStatusHUD />
+
+        <div className="controls">
+          <p>W A S D - Move | K - Camera | R - Reset</p>
+          <p>Arrow Keys - Flip | L - Lights</p>
+        </div>
+      </>
+    );
+  }
+
+  // Car Selector Screen
+  if (gameState === 'selector') {
+    return <CarSelector onCarSelected={handleCarSelected} />;
+  }
+
+  // Home Menu Screen
   return (
     <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: '100%',
-      height: '100%',
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      backdropFilter: 'blur(5px)',
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      zIndex: 1000
+      fontFamily: 'Arial, sans-serif'
     }}>
       <div style={{
         background: 'linear-gradient(135deg, #1e1e2e 0%, #2a2a4a 100%)',
@@ -39,7 +89,7 @@ const HomePageMenu = ({ onStartGame }) => {
           fontFamily: 'Arial, sans-serif',
           letterSpacing: '3px'
         }}>
-          RACING GAME
+          🏎️ RACING GAME
         </h1>
 
         <p style={{
@@ -52,7 +102,7 @@ const HomePageMenu = ({ onStartGame }) => {
         </p>
 
         <button
-          onClick={onStartGame}
+          onClick={handleStartGame}
           style={{
             background: 'linear-gradient(135deg, #00ffff 0%, #00ccff 100%)',
             color: '#000',
@@ -97,103 +147,4 @@ const HomePageMenu = ({ onStartGame }) => {
       </div>
     </div>
   );
-};
-
-const CarDisplay = () => {
-  const carModel = useLoader(GLTFLoader, process.env.PUBLIC_URL + '/models/car.glb');
-
-  return (
-    <>
-      {/* Platform */}
-      <mesh position={[0, -1, 0]} receiveShadow>
-        <cylinderGeometry args={[3, 3, 0.5, 32]} />
-        <meshStandardMaterial
-          color="#222222"
-          metalness={0.6}
-          roughness={0.4}
-        />
-      </mesh>
-
-      {/* Car Model */}
-      <group position={[0, 0, 0]}>
-        <primitive object={carModel.scene} scale={[1.5, 1.5, 1.5]} castShadow />
-      </group>
-
-      {/* Lighting for showcase */}
-      <pointLight position={[5, 5, 5]} intensity={1} />
-      <pointLight position={[-5, 5, -5]} intensity={0.8} color="#00ffff" />
-    </>
-  );
-};
-
-const CarShowcase = () => {
-  const [gameStarted, setGameStarted] = useState(false);
-
-  const handleStartGame = () => {
-    setGameStarted(true);
-  };
-
-  if (!gameStarted) {
-    return (
-      <>
-        <Canvas
-          shadows
-          dpr={[1, 2]}
-          gl={{ antialias: true, alpha: false }}
-          camera={{ position: [0, 3, 5], fov: 50 }}
-        >
-          <color attach="background" args={['#1a1a2e']} />
-          <ambientLight intensity={0.8} />
-          <directionalLight
-            position={[10, 20, 10]}
-            intensity={1.5}
-            shadow-mapSize-width={2048}
-            shadow-mapSize-height={2048}
-            castShadow
-          />
-
-          <OrbitControls autoRotate autoRotateSpeed={3} />
-
-          <CarDisplay />
-        </Canvas>
-
-        <HomePageMenu onStartGame={handleStartGame} />
-      </>
-    );
-  }
-
-  return (
-    <>
-      <Canvas
-        shadows
-        dpr={[1, 2]}
-        gl={{ antialias: true, alpha: false }}
-        camera={{ position: [0, 5, 15], fov: 45 }}
-      >
-        <color attach="background" args={['#87CEEB']} />
-        <ambientLight intensity={0.6} />
-        <directionalLight
-          position={[100, 50, 100]}
-          intensity={1.2}
-          shadow-mapSize-width={2048}
-          shadow-mapSize-height={2048}
-          castShadow
-        />
-
-        <Physics broadphase="SAP" gravity={[0, -2.6, 0]}>
-          <Scene />
-        </Physics>
-      </Canvas>
-
-      <ProfileHUD />
-      <TrackStatusHUD />
-
-      <div className="controls">
-        <p>W A S D - Move | K - Camera | R - Reset</p>
-        <p>Arrow Keys - Flip | L - Lights</p>
-      </div>
-    </>
-  );
-};
-
-export default CarShowcase;
+}

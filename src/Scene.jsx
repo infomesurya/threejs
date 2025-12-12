@@ -1,28 +1,23 @@
 import {
+  Environment,
   OrbitControls,
   PerspectiveCamera,
-  Sky,
+  Sky, // Import Sky
 } from "@react-three/drei";
-import { Suspense, useEffect, useState, useRef } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Car } from "./Car";
 import { Ground } from "./Ground";
 import { Track } from "./Track";
 import { HUD } from "./HUD";
 import { BoostPad } from "./BoostPad";
-import ProceduralWorld from "./world/ProceduralWorld";
-import CameraController from "./systems/CameraController";
-import ParkingZone from "./systems/ParkingZone";
-import Coin from "./systems/Coin";
 
 import { FinishLine } from "./FinishLine";
 import { TrafficCone } from "./TrafficCone";
 
-export function Scene() {
+export function Scene({ selectedCarPath, selectedCarName }) {
   const [thirdPerson, setThirdPerson] = useState(false);
   const [cameraPosition, setCameraPosition] = useState([-6, 3.9, 6.21]);
-  const [headlightsOn, setHeadlightsOn] = useState(false);
-  const [proceduralEnabled, setProceduralEnabled] = useState(false);
-  const carBodyRef = useRef(null);
+  const [headlightsOn, setHeadlightsOn] = useState(false); // Move state inside component
 
   // Key listener for headlights toggle (L)
   useEffect(() => {
@@ -48,15 +43,6 @@ export function Scene() {
     return () => window.removeEventListener("keydown", keydownHandler);
   }, [thirdPerson]);
 
-  // Toggle procedural world with P key
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.key.toLowerCase() === "p") setProceduralEnabled((s) => !s);
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, []);
-
   return (
     <Suspense fallback={null}>
       {/* Sunrise sky */}
@@ -72,9 +58,10 @@ export function Scene() {
       {/* Orange fog for morning */}
       <fog attach="fog" args={['#ffae42', 10, 50]} />
 
-      {/* Procedural world (toggle with 'P') */}
-      {proceduralEnabled && <ProceduralWorld />}
-
+      <Environment
+        files={process.env.PUBLIC_URL + "/textures/envmap.hdr"}
+        background={"both"}
+      />
       {/* HUD & Arcade Elements */}
       <HUD />
       <FinishLine position={[0, 0, -10]} />
@@ -86,39 +73,14 @@ export function Scene() {
       {/* Boost Pads */}
       <BoostPad position={[0, 0.01, -20]} />
 
-      {/* Parking Zones */}
-      <ParkingZone position={[5, 0.05, 0]} size={[3, 0.1, 4]} />
-      <ParkingZone position={[-5, 0.05, -10]} size={[3, 0.1, 4]} />
-
-      {/* Coins on Track */}
-      <Coin position={[-2, 0.5, -2]} />
-      <Coin position={[0, 0.5, -4]} />
-      <Coin position={[2, 0.5, -6]} />
-      <Coin position={[1, 0.5, -8]} />
-      <Coin position={[-1, 0.5, -10]} />
-      <Coin position={[-3, 0.5, -5]} />
-      <Coin position={[2, 0.5, -3]} />
-      <Coin position={[0, 0.5, -7]} />
-      <Coin position={[-2, 0.5, -9]} />
-      <Coin position={[1, 0.5, -1]} />
-
-      <PerspectiveCamera makeDefault position={cameraPosition} fov={40} far={2000} />
+      <PerspectiveCamera makeDefault position={cameraPosition} fov={40} />
       {!thirdPerson && (
-        <OrbitControls 
-          target={[-2.64, -0.71, 0.03]} 
-          enableZoom={false}
-          enablePan={false}
-          enableRotate={false}
-          autoRotate={false}
-        />
+        <OrbitControls target={[-2.64, -0.71, 0.03]} />
       )}
-
-      {/* Smooth chase camera (active when thirdPerson is true) */}
-      <CameraController carBodyRef={carBodyRef} enabled={thirdPerson} />
 
       <Ground />
       <Track />
-      <Car thirdPerson={thirdPerson} headlightsOn={headlightsOn} carBodyRef={carBodyRef} />
+      <Car selectedCarPath={selectedCarPath} selectedCarName={selectedCarName} thirdPerson={thirdPerson} headlightsOn={headlightsOn} />
     </Suspense>
   );
 }
