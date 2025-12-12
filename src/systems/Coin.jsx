@@ -28,17 +28,12 @@ export function Coin({ position = [0, 0.5, 0], onCollect }) {
     ref.current.position.y = position[1] + Math.sin(rotationRef.current * 0.03) * 0.2;
   });
 
-  const handleCollision = (e) => {
+  const handleCollect = () => {
     // Only collect coins when on track
     if (!collected && isOnTrack) {
       setCollected(true);
       addScore(10); // 10 points per coin
       if (onCollect) onCollect(position);
-      
-      // Hide coin
-      if (ref.current) {
-        ref.current.visible = false;
-      }
     }
   };
 
@@ -47,11 +42,7 @@ export function Coin({ position = [0, 0.5, 0], onCollect }) {
   return (
     <mesh
       ref={ref}
-      onPointerEnter={(e) => {
-        if (e.distance < 1) {
-          handleCollision(e);
-        }
-      }}
+      onClick={handleCollect}
     >
       {/* Coin geometry - cylinder */}
       <cylinderGeometry args={[0.15, 0.15, 0.05, 32]} />

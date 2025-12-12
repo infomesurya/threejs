@@ -92,11 +92,11 @@ export const useControls = (vehicleApi, chassisApi, isOnTrack = true) => {
     // Brake control
     if (s) {
       for (let i = 0; i < 4; i++) {
-        vehicleApi.setBrakeForce(10, i);
+        vehicleApi.setBrake(10, i);
       }
     } else {
       for (let i = 0; i < 4; i++) {
-        vehicleApi.setBrakeForce(0, i);
+        vehicleApi.setBrake(0, i);
       }
     }
 

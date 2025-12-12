@@ -104,7 +104,13 @@ export function Scene() {
 
       <PerspectiveCamera makeDefault position={cameraPosition} fov={40} far={2000} />
       {!thirdPerson && (
-        <OrbitControls target={[-2.64, -0.71, 0.03]} enableZoom={false} />
+        <OrbitControls 
+          target={[-2.64, -0.71, 0.03]} 
+          enableZoom={false}
+          enablePan={false}
+          enableRotate={false}
+          autoRotate={false}
+        />
       )}
 
       {/* Smooth chase camera (active when thirdPerson is true) */}
