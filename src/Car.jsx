@@ -40,6 +40,24 @@ export const Car = ({ selectedCarPath, selectedCarName, thirdPerson, headlightsO
 
       console.log("Car model loaded:", selectedCarName, clonedModel);
 
+      // Check if the model has any meshes
+      let hasMeshes = false;
+      clonedModel.traverse((node) => {
+        if (node.isMesh) hasMeshes = true;
+      });
+
+      if (!hasMeshes) {
+        console.log("GLB model has no meshes, using fallback car");
+        // Fallback: simple car shape
+        const carGeometry = new THREE.BoxGeometry(1, 0.5, 2);
+        const carMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+        const carMesh = new THREE.Mesh(carGeometry, carMaterial);
+        carMesh.castShadow = true;
+        carMesh.receiveShadow = true;
+        carVisualRef.current.add(carMesh);
+        return;
+      }
+
       // Setup shadows
       clonedModel.traverse((node) => {
         if (node.isMesh) {
@@ -51,6 +69,13 @@ export const Car = ({ selectedCarPath, selectedCarName, thirdPerson, headlightsO
       carVisualRef.current.add(clonedModel);
     } catch (e) {
       console.error("Error cloning car model:", e);
+      // Fallback on error
+      const carGeometry = new THREE.BoxGeometry(1, 0.5, 2);
+      const carMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+      const carMesh = new THREE.Mesh(carGeometry, carMaterial);
+      carMesh.castShadow = true;
+      carMesh.receiveShadow = true;
+      carVisualRef.current.add(carMesh);
     }
   }, [carModelData, selectedCarName]);
 
