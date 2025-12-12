@@ -8,8 +8,6 @@ let gameState = {
   isOnTrack: true,
   offTrackDuration: 0,
   offTrackMessage: "",
-  resetPosition: null, // Timestamp when reset is requested
-  gameStatus: 'start', // 'start', 'playing', 'finished'
 };
 
 const listeners = new Set();

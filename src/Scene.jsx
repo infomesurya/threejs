@@ -1,5 +1,4 @@
 import {
-  Environment,
   OrbitControls,
   PerspectiveCamera,
   Sky,
@@ -13,6 +12,7 @@ import { BoostPad } from "./BoostPad";
 import ProceduralWorld from "./world/ProceduralWorld";
 import CameraController from "./systems/CameraController";
 import ParkingZone from "./systems/ParkingZone";
+import Coin from "./systems/Coin";
 
 import { FinishLine } from "./FinishLine";
 import { TrafficCone } from "./TrafficCone";
@@ -37,16 +37,10 @@ export function Scene() {
 
   useEffect(() => {
     function keydownHandler(e) {
-      if (e.key.toLowerCase() === "k") {
+      if (e.key === "k") {
         // random is necessary to trigger a state change
         if (thirdPerson) setCameraPosition([-6, 3.9, 6.21 + Math.random() * 0.01]);
         setThirdPerson(!thirdPerson);
-
-        // Disable orbit controls when in third-person car view
-        const orbitControls = document.querySelector('canvas')?.parentElement?.querySelector('[data-orbit-controls]');
-        if (orbitControls) {
-          orbitControls.style.pointerEvents = thirdPerson ? 'auto' : 'none';
-        }
       }
     }
 
@@ -81,10 +75,6 @@ export function Scene() {
       {/* Procedural world (toggle with 'P') */}
       {proceduralEnabled && <ProceduralWorld />}
 
-      <Environment
-        files={process.env.PUBLIC_URL + "/textures/envmap.hdr"}
-        background={"both"}
-      />
       {/* HUD & Arcade Elements */}
       <HUD />
       <FinishLine position={[0, 0, -10]} />
@@ -99,6 +89,18 @@ export function Scene() {
       {/* Parking Zones */}
       <ParkingZone position={[5, 0.05, 0]} size={[3, 0.1, 4]} />
       <ParkingZone position={[-5, 0.05, -10]} size={[3, 0.1, 4]} />
+
+      {/* Coins on Track */}
+      <Coin position={[-2, 0.5, -2]} />
+      <Coin position={[0, 0.5, -4]} />
+      <Coin position={[2, 0.5, -6]} />
+      <Coin position={[1, 0.5, -8]} />
+      <Coin position={[-1, 0.5, -10]} />
+      <Coin position={[-3, 0.5, -5]} />
+      <Coin position={[2, 0.5, -3]} />
+      <Coin position={[0, 0.5, -7]} />
+      <Coin position={[-2, 0.5, -9]} />
+      <Coin position={[1, 0.5, -1]} />
 
       <PerspectiveCamera makeDefault position={cameraPosition} fov={40} far={2000} />
       {!thirdPerson && (

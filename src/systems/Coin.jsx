@@ -2,6 +2,7 @@ import { useBox } from "@react-three/cannon";
 import { useFrame } from "@react-three/fiber";
 import { useRef, useState } from "react";
 import { addScore } from "./profileStore";
+import { useGameState } from "./gameStateStore";
 
 export function Coin({ position = [0, 0.5, 0], onCollect }) {
   const [ref] = useBox(() => ({
@@ -13,6 +14,7 @@ export function Coin({ position = [0, 0.5, 0], onCollect }) {
 
   const [collected, setCollected] = useState(false);
   const rotationRef = useRef(0);
+  const { isOnTrack } = useGameState();
 
   useFrame(() => {
     if (!ref.current || collected) return;
@@ -27,11 +29,12 @@ export function Coin({ position = [0, 0.5, 0], onCollect }) {
   });
 
   const handleCollision = (e) => {
-    if (!collected) {
+    // Only collect coins when on track
+    if (!collected && isOnTrack) {
       setCollected(true);
       addScore(10); // 10 points per coin
       if (onCollect) onCollect(position);
-
+      
       // Hide coin
       if (ref.current) {
         ref.current.visible = false;
@@ -59,7 +62,7 @@ export function Coin({ position = [0, 0.5, 0], onCollect }) {
         emissive="#FFAA00"
         emissiveIntensity={0.5}
       />
-
+      
       {/* Glow effect */}
       <mesh position={[0, 0, 0]} scale={1.2}>
         <cylinderGeometry args={[0.18, 0.18, 0.04, 32]} />

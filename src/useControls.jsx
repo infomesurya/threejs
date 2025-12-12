@@ -63,24 +63,24 @@ export const useControls = (vehicleApi, chassisApi, isOnTrack = true) => {
     const { w, s, a, d, arrowdown, arrowup, arrowleft, arrowright, r } = controlsRef.current;
 
     if (w) {
-      vehicleApi.applyEngineForce(5000, 2);
-      vehicleApi.applyEngineForce(5000, 3);
+      vehicleApi.applyEngineForce(150, 2);
+      vehicleApi.applyEngineForce(150, 3);
     } else if (s) {
-      vehicleApi.applyEngineForce(-4000, 2);
-      vehicleApi.applyEngineForce(-4000, 3);
+      vehicleApi.applyEngineForce(-150, 2);
+      vehicleApi.applyEngineForce(-150, 3);
     } else {
       vehicleApi.applyEngineForce(0, 2);
       vehicleApi.applyEngineForce(0, 3);
     }
 
     if (a) {
-      vehicleApi.setSteeringValue(0.5, 2);
-      vehicleApi.setSteeringValue(0.5, 3);
+      vehicleApi.setSteeringValue(0.35, 2);
+      vehicleApi.setSteeringValue(0.35, 3);
       vehicleApi.setSteeringValue(-0.1, 0);
       vehicleApi.setSteeringValue(-0.1, 1);
     } else if (d) {
-      vehicleApi.setSteeringValue(-0.5, 2);
-      vehicleApi.setSteeringValue(-0.5, 3);
+      vehicleApi.setSteeringValue(-0.35, 2);
+      vehicleApi.setSteeringValue(-0.35, 3);
       vehicleApi.setSteeringValue(0.1, 0);
       vehicleApi.setSteeringValue(0.1, 1);
     } else {
@@ -89,20 +89,30 @@ export const useControls = (vehicleApi, chassisApi, isOnTrack = true) => {
       }
     }
 
-    // Flip Controls - small continuous impulse/torque
-    // Applying local impulse at an offset to create rotation
+    // Brake control
+    if (s) {
+      for (let i = 0; i < 4; i++) {
+        vehicleApi.setBrakeForce(10, i);
+      }
+    } else {
+      for (let i = 0; i < 4; i++) {
+        vehicleApi.setBrakeForce(0, i);
+      }
+    }
+
+    // Flip Controls
     if (arrowdown) chassisApi.applyLocalImpulse([0, -2.5, 0], [0, 0, +1]);
     if (arrowup) chassisApi.applyLocalImpulse([0, -2.5, 0], [0, 0, -1]);
     if (arrowleft) chassisApi.applyLocalImpulse([0, -2.5, 0], [-0.5, 0, 0]);
     if (arrowright) chassisApi.applyLocalImpulse([0, -2.5, 0], [+0.5, 0, 0]);
 
     if (r && resetTriggeredRef.current) {
-      // Reset to starting position (only once per key press)
+      // Reset to starting position
       chassisApi.velocity.set(0, 0, 0);
       chassisApi.angularVelocity.set(0, 0, 0);
       chassisApi.rotation.set(0, 0, 0);
       chassisApi.position.set(-1.5, 0.5, 3);
-      resetTriggeredRef.current = false; // Reset the trigger
+      resetTriggeredRef.current = false;
     }
   });
 
